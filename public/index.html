@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>아이템 시뮬레이터</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- 계정 섹션 -->
+      <section id="accountSection" class="section">
+        <h2>계정</h2>
+        <div class="form-group">
+          <input type="text" id="userId" placeholder="아이디" />
+          <input type="password" id="password" placeholder="비밀번호" />
+          <button id="signupBtn">회원가입</button>
+          <button id="loginBtn">로그인</button>
+        </div>
+      </section>
+
+      <!-- 캐릭터 생성 섹션 -->
+      <section id="characterSection" class="section hidden">
+        <h2>캐릭터 생성</h2>
+        <div class="form-group">
+          <input type="text" id="nickname" placeholder="닉네임" />
+          <button id="createCharacterBtn">캐릭터 생성</button>
+        </div>
+      </section>
+
+      <!-- 캐릭터 검색 섹션 -->
+      <section id="searchSection" class="section">
+        <h2>캐릭터 검색</h2>
+        <div class="form-group">
+          <input type="text" id="searchNickname" placeholder="닉네임 검색" />
+          <button id="searchBtn">검색</button>
+        </div>
+      </section>
+
+      <!-- 캐릭터 정보 섹션 -->
+      <section id="characterInfo" class="section hidden">
+        <h2>캐릭터 정보</h2>
+        <div id="characterDetails" class="character-details">
+          <!-- 캐릭터 정보가 동적으로 추가됨 -->
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="js/server.js"></script>
+  </body>
+</html>

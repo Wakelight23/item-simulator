@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  accountId Int @id @default(autoincrement()) @map("accountId")
+  userId String @unique @map("userId")
+  password String @map("password")
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+
+  characters Character[]
+
+  @@map("Account")
+}
+
+model Character {
+  characterId   Int          @id @default(autoincrement()) @map("characterId")
+  accountId     Int          @map("accountId")
+  nickname      String       @unique @map("nickname")
+  
+  createdAt     DateTime     @default(now()) @map("createdAt")
+  updatedAt     DateTime     @updatedAt @map("updatedAt")
+
+  account       Account      @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+  inventory     Inventory?
+  characterInfo CharacterInfo?
+
+  @@map("Character")
+}
+
+model Item {
+  id          Int       @id @default(autoincrement()) @map("itemId")
+  inventoryId Int       @map("inventoryId")
+  name        String    @map("itemName")
+  description String?   @map("description")
+  itemLevel   Int       @map("itemLevel")
+  type        String    @map("type")
+  rarity      String    @map("rarity")
+  price       Int       @map("itemPrice")
+
+  createdAt   DateTime  @default(now()) @map("createdAt")
+  updatedAt   DateTime  @updatedAt @map("updatedAt")
+
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  @@map("Items")
+}
+
+model Inventory {
+  id          Int       @id @default(autoincrement()) @map("inventoryId")
+  characterId Int       @unique @map("characterId")
+  gold        Int       @default(10000) @map("gold")
+  maxSlots    Int       @default(20) @map("maxSlots")
+
+  createdAt   DateTime  @default(now()) @map("createdAt")
+  updatedAt   DateTime  @updatedAt @map("updatedAt")
+
+  character   Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  items       Item[]
+
+  @@map("Inventory")
+}
+
+model CharacterInfo {
+  id            Int       @id @default(autoincrement()) @map("characterInfoId")
+  characterId   Int       @unique @map("characterId")
+
+  equipLevel    Int       @default(0) @map("equipLevel")
+  manaPoint     Int       @default(10) @map("manaPoint")
+  attackDamage  Int       @default(10) @map("attackDamage")
+  magicDamage   Int       @default(10) @map("magicDamage")
+  strength      Int       @default(10) @map("strength")
+  intelligence  Int       @default(10) @map("intelligence")
+
+  createdAt     DateTime  @default(now()) @map("createdAt")
+  updatedAt     DateTime  @updatedAt @map("updatedAt")
+
+  character     Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+
+  @@map("CharacterInfo")
+}
+
