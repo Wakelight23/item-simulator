@@ -9,13 +9,29 @@
   <body>
     <div class="container">
       <!-- 계정 섹션 -->
-      <section id="accountSection" class="section">
-        <h2>계정</h2>
+      <!-- 로그인 섹션 -->
+      <section id="loginSection" class="section">
+        <h2>로그인</h2>
         <div class="form-group">
-          <input type="text" id="userId" placeholder="아이디" />
-          <input type="password" id="password" placeholder="비밀번호" />
-          <button id="signupBtn">회원가입</button>
+          <input type="text" id="loginUserId" placeholder="아이디" />
+          <input type="password" id="loginPassword" placeholder="비밀번호" />
           <button id="loginBtn">로그인</button>
+          <button id="showSignupBtn">회원가입</button>
+        </div>
+      </section>
+
+      <!-- 회원가입 섹션 -->
+      <section id="signupSection" class="section hidden">
+        <h2>회원가입</h2>
+        <div class="form-group">
+          <input type="text" id="signupUserId" placeholder="아이디" />
+          <input type="password" id="signupPassword" placeholder="비밀번호" />
+          <input
+            type="password"
+            id="confirmPassword"
+            placeholder="비밀번호 확인"
+          />
+          <button id="signupBtn">회원가입</button>
         </div>
       </section>
 

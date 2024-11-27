@@ -9,7 +9,12 @@ const router = express.Router();
 /** 회원가입 API **/
 router.post('/signup', async (req, res, next) => {
   try {
-    const { userId, password } = req.body;
+    const { userId, password, confirmPassword } = req.body;
+
+    // 비밀번호 일치 여부 확인
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: '비밀번호가 일치하지 않습니다.' });
+    }
 
     // 아이디 중복 확인
     const isExistUser = await prisma.account.findFirst({
@@ -67,9 +72,12 @@ router.post('/login', async (req, res, next) => {
     res.cookie('authorization', `Bearer ${token}`, {
       maxAge: 24 * 60 * 60 * 1000, // 24시간
       httpOnly: false,
-      path: '/',
-      secure: false, // 개발 환경에서는 false로 설정
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production', // HTTPS 필수
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? process.env.COOKIE_DOMAIN
+          : undefined,
     });
 
     return res.status(200).json({ message: '로그인에 성공했습니다.' });

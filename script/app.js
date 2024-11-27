@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -6,8 +7,12 @@ import CharactersRouter from './routes/characters.router.js';
 import logMiddware from './middlewares/log.middleware.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 
+dotenv.config();
+
 const app = express();
-const PORT = 3010;
+const PORT = process.env.PORT || 3010;
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
 
 // 1. 기본 미들웨어
 app.use(express.json());
@@ -16,10 +21,14 @@ app.use(cookieParser());
 // 2. CORS 설정
 app.use(
   cors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? process.env.PRODUCTION_URL
+        : allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Set-Cookie'],
   })
 );
 
