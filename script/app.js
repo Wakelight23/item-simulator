@@ -7,12 +7,20 @@ import CharactersRouter from './routes/characters.router.js';
 import logMiddware from './middlewares/log.middleware.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
 
-dotenv.config();
+dotenv.config({
+  path:
+    process.env.NODE_ENV === 'production'
+      ? '.env.production'
+      : '.env.development',
+});
 
 const app = express();
 const PORT = process.env.PORT || 3010;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+// CORS 허용 도메인 설정
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5500', 'http://127.0.0.1:5500'];
 
 // 1. 기본 미들웨어
 app.use(express.json());
@@ -21,10 +29,14 @@ app.use(cookieParser());
 // 2. CORS 설정
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.PRODUCTION_URL
-        : allowedOrigins,
+    origin: function (origin, callback) {
+      // origin이 없거나 허용된 도메인인 경우
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -46,4 +58,15 @@ app.use(errorHandlingMiddleware);
 
 app.listen(PORT, () => {
   console.log(PORT, '포트로 서버가 열렸어요!');
+});
+
+// 예기치 않은 에러 처리
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
+  process.exit(1);
 });

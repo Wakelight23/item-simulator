@@ -2,7 +2,7 @@ const API_URL =
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3010/api'
-    : 'http://your-production-url/api';
+    : 'http://wakelight.shop:3010/api';
 
 export async function signup(userId, password, confirmPassword) {
   const response = await fetch(`${API_URL}/signup`, {
