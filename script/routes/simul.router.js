@@ -11,12 +11,41 @@ router.get(
   async (req, res, next) => {
     try {
       const { characterId } = req.params;
-      const character = await prisma.character.findUnique({
-        where: { characterId: +characterId },
-        include: {
-          characterInfo: true,
+
+      // 명시적 형변환 및 유효성 검사
+      const id = parseInt(characterId);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          message: '유효하지 않은 캐릭터 ID입니다.',
+        });
+      }
+
+      const character = await prisma.character.findFirst({
+        where: {
+          characterId: id, // 형변환된 ID 사용
+        },
+        select: {
+          characterId: true,
+          nickname: true,
+          characterInfo: {
+            select: {
+              equipLevel: true,
+              healthPoint: true,
+              manaPoint: true,
+              attackDamage: true,
+              magicDamage: true,
+              defensivePower: true,
+              strength: true,
+              dexterity: true,
+              intelligence: true,
+              luck: true,
+            },
+          },
           inventory: {
-            include: {
+            select: {
+              id: true,
+              gold: true,
+              maxSlots: true,
               items: true,
             },
           },
@@ -24,11 +53,14 @@ router.get(
       });
 
       if (!character) {
-        return res.status(404).json({ message: '캐릭터를 찾을 수 없습니다.' });
+        return res.status(404).json({
+          message: '캐릭터를 찾을 수 없습니다.',
+        });
       }
 
       return res.status(200).json({ data: character });
     } catch (err) {
+      console.error('캐릭터 조회 오류:', err); // 에러 로깅 추가
       next(err);
     }
   }
@@ -88,7 +120,7 @@ router.post(
 
         // 트랜잭션으로 인벤토리의 골드가 차감 update
         const updatedInventory = await tx.inventory.update({
-          where: { id: inventory.id },
+          where: { characterId: inventory.characterId },
           data: { gold: { decrement: RANDOM_ITEM_COST } },
           select: { gold: true },
         });

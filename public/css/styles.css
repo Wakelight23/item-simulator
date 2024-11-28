@@ -103,3 +103,31 @@ button:hover {
   margin-top: 0.5rem;
   font-size: 0.9rem;
 }
+
+#inventory {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px;
+}
+
+#inventorySlots {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.inventory-slot {
+  border: 1px solid #999;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.inventory-slot.selected {
+  background-color: #e0e0e0;
+}
+
+.inventory-slot.empty {
+  background-color: #f5f5f5;
+}

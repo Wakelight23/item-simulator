@@ -54,7 +54,7 @@ model ItemList {
     createdAt DateTime @default(now()) @map("createdAt")
     updatedAt DateTime @updatedAt @map("updatedAt")
 
-    items     Item[]   // 이름 수정
+    items     Item[]   
 
     @@map("ItemLists")
 }

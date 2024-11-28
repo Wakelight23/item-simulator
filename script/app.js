@@ -4,7 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import UsersRouter from './routes/users.router.js';
 import CharactersRouter from './routes/characters.router.js';
-import ItemSimul from './routes/simul.router.js';
+import ItemSimulRouter from './routes/simul.router.js';
 import AdminRouter from './routes/admin.router.js';
 import logMiddware from './middlewares/log.middleware.js';
 import errorHandlingMiddleware from './middlewares/error-handling.middleware.js';
@@ -24,6 +24,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : [
       'http://localhost:5500',
+      'http://localhost:3010',
       'http://127.0.0.1:5500',
       'http://wakelight.shop:3010',
     ];
@@ -57,7 +58,7 @@ app.use(logMiddware);
 app.use(express.static('public'));
 
 // 5. 라우터
-app.use('/api', [UsersRouter, CharactersRouter, AdminRouter, ItemSimul]);
+app.use('/api', [UsersRouter, CharactersRouter, ItemSimulRouter, AdminRouter]);
 
 // 6. 에러 핸들링 (항상 마지막에 위치)
 app.use(errorHandlingMiddleware);

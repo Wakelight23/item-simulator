@@ -81,7 +81,10 @@ router.post('/login', async (req, res, next) => {
           : undefined,
     });
 
-    return res.status(200).json({ message: '로그인에 성공했습니다.' });
+    return res.status(200).json({
+      message: '로그인에 성공했습니다.',
+      accountId: account.accountId,
+    });
   } catch (err) {
     next(err);
   }
@@ -92,8 +95,15 @@ router.get('/accounts/:accountId', authMiddleware, async (req, res, next) => {
   try {
     const { accountId } = req.params;
 
+    // accountId가 유효한지 검사
+    if (!accountId || isNaN(+accountId)) {
+      return res.status(400).json({
+        message: '유효하지 않은 계정 ID입니다.',
+      });
+    }
+
     const account = await prisma.account.findFirst({
-      where: { accountId: +accountId },
+      where: { accountId: parseInt(accountId) },
       select: {
         accountId: true,
         userId: true,
@@ -127,6 +137,12 @@ router.get('/accounts/:accountId', authMiddleware, async (req, res, next) => {
         },
       },
     });
+
+    if (!account) {
+      return res.status(404).json({
+        message: '계정을 찾을 수 없습니다.',
+      });
+    }
 
     return res.status(200).json({ data: account });
   } catch (err) {

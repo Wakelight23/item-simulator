@@ -35,14 +35,33 @@
         </div>
       </section>
 
-      <!-- 캐릭터 생성 섹션 -->
-      <section id="characterSection" class="section hidden">
-        <h2>캐릭터 생성</h2>
-        <div class="form-group">
-          <input type="text" id="nickname" placeholder="닉네임" />
+      <!-- 캐릭터 섹션 -->
+      <div id="characterSection" class="hidden">
+        <h2>캐릭터 관리</h2>
+        <div id="createCharacterDiv">
+          <input type="text" id="nickname" placeholder="캐릭터 이름" />
           <button id="createCharacterBtn">캐릭터 생성</button>
         </div>
-      </section>
+        <div id="characterList"></div>
+        <button id="logoutBtn">로그아웃</button>
+      </div>
+
+      <!-- 게임 섹션 -->
+      <div id="gameSection" class="hidden">
+        <h2>게임 화면</h2>
+        <div id="characterStats"></div>
+        <div id="inventory">
+          <div id="inventoryHeader">
+            <span>골드: <span id="goldAmount">0</span></span>
+            <button id="drawItemBtn">아이템 뽑기 (100G)</button>
+            <button id="sellItemBtn" disabled>아이템 판매</button>
+            <button id="sellAllBtn">전체 판매</button>
+          </div>
+          <div id="inventorySlots"></div>
+          <div id="selectedItemInfo" class="hidden"></div>
+        </div>
+        <button id="backToCharacterList">캐릭터 선택으로</button>
+      </div>
 
       <!-- 캐릭터 검색 섹션 -->
       <section id="searchSection" class="section">
