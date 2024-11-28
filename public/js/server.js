@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('signupBtn').addEventListener('click', handleSignup);
   // 로그인 처리
   document.getElementById('loginBtn').addEventListener('click', handleLogin);
+  // const isLoggedIn = localStorage.getItem('isLoggedIn');
+  // if (isLoggedIn === 'true') {
+  //   document.getElementById('characterSection').classList.remove('hidden');
+  //   document.getElementById('loginSection').classList.add('hidden');
+  // }
   // 캐릭터 관련
   document
     .getElementById('createCharacterBtn')
@@ -24,49 +29,29 @@ document.addEventListener('DOMContentLoaded', () => {
     .addEventListener('click', handleSearchCharacter);
 });
 
-// document.addEventListener('DOMContentLoaded', () => {
-//   // 이벤트 리스너 등록
-//   document
-//     .getElementById('showSignupBtn')
-//     .addEventListener('click', showSignupSection);
-//   document.getElementById('signupBtn').addEventListener('click', async () => {
-//     const userId = document.getElementById('signupUserId').value;
-//     const password = document.getElementById('signupPassword').value;
-//     const confirmPassword = document.getElementById('confirmPassword').value;
-
-//     try {
-//       const data = await signup(userId, password, confirmPassword);
-//       alert(data.message);
-//       showLoginSection();
-//       // 입력 필드 초기화
-//       document.getElementById('signupUserId').value = '';
-//       document.getElementById('signupPassword').value = '';
-//       document.getElementById('confirmPassword').value = '';
-//     } catch (error) {
-//       alert('회원가입 중 오류가 발생했습니다.');
-//     }
-//   });
-//   document
-//     .getElementById('createCharacterBtn')
-//     .addEventListener('click', handleCreateCharacter);
-//   document
-//     .getElementById('searchBtn')
-//     .addEventListener('click', handleSearchCharacter);
-// });
-
+// 회원가입할 때 UI
 async function handleSignup() {
   try {
-    const userId = document.getElementById('userId').value;
-    const password = document.getElementById('password').value;
+    const userId = document.getElementById('signupUserId').value;
+    const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!userId || !password || !confirmPassword) {
+      alert('모든 필드를 입력해주세요.');
+      return;
+    }
 
     const data = await signup(userId, password, confirmPassword);
     alert(data.message);
+    if (data.message === '회원가입이 완료되었습니다.') {
+      showLoginSection();
+    }
   } catch (error) {
     alert('회원가입 중 오류가 발생했습니다.');
   }
 }
 
+// 로그인할 때 UI
 async function handleLogin() {
   try {
     const userId = document.getElementById('loginUserId').value;
@@ -101,15 +86,7 @@ function showSignupSection() {
   document.getElementById('signupSection').classList.remove('hidden');
 }
 
-// 페이지 로드 시 로그인 상태 확인
-// document.addEventListener('DOMContentLoaded', () => {
-//   const isLoggedIn = localStorage.getItem('isLoggedIn');
-//   if (isLoggedIn === 'true') {
-//     document.getElementById('characterSection').classList.remove('hidden');
-//     document.getElementById('accountSection').classList.add('hidden');
-//   }
-// });
-
+// 캐릭터 생성 시 UI
 async function handleCreateCharacter() {
   try {
     const cookies = document.cookie;
@@ -131,6 +108,7 @@ async function handleCreateCharacter() {
   }
 }
 
+// 캐릭터 검색 UI
 async function handleSearchCharacter() {
   try {
     const nickname = document.getElementById('searchNickname').value;
@@ -146,6 +124,7 @@ async function handleSearchCharacter() {
   }
 }
 
+// 캐릭터 정보 UI
 function displayCharacterInfo(character) {
   const characterDetails = document.getElementById('characterDetails');
   characterDetails.innerHTML = `

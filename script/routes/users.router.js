@@ -48,7 +48,7 @@ router.post('/login', async (req, res, next) => {
     const { userId, password } = req.body;
 
     const account = await prisma.account.findFirst({
-      where: { userId },
+      where: { userId, isAdmin: false },
     });
 
     if (!account) {
@@ -63,7 +63,7 @@ router.post('/login', async (req, res, next) => {
 
     // JWT 토큰 생성
     const token = jwt.sign(
-      { accountId: account.accountId },
+      { accountId: account.accountId, isAdmin: false },
       'custom-secret-key',
       { expiresIn: '24h' } // 만료 시간 증가
     );
@@ -72,7 +72,8 @@ router.post('/login', async (req, res, next) => {
     res.cookie('authorization', `Bearer ${token}`, {
       maxAge: 24 * 60 * 60 * 1000, // 24시간
       httpOnly: false,
-      secure: process.env.NODE_ENV === 'production', // HTTPS 필수
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       domain:
         process.env.NODE_ENV === 'production'
@@ -100,31 +101,26 @@ router.get('/accounts/:accountId', authMiddleware, async (req, res, next) => {
         updatedAt: true,
         characters: {
           select: {
-            id: true,
+            characterId: true,
             nickname: true,
             characterInfo: {
               select: {
                 equipLevel: true,
+                healthPoint: true,
                 manaPoint: true,
                 attackDamage: true,
                 magicDamage: true,
+                defensivePower: true,
                 strength: true,
+                dexterity: true,
                 intelligence: true,
+                luck: true,
               },
             },
             inventory: {
-              select: {
-                gold: true,
-                maxSlots: true,
-                items: {
-                  select: {
-                    name: true,
-                    itemLevel: true,
-                    type: true,
-                    rarity: true,
-                    price: true,
-                  },
-                },
+              include: {
+                items: true,
+                equip: true,
               },
             },
           },
@@ -152,11 +148,15 @@ router.get('/characters/:nickname', async (req, res, next) => {
         characterInfo: {
           select: {
             equipLevel: true,
+            healthPoint: true,
             manaPoint: true,
             attackDamage: true,
             magicDamage: true,
+            defensivePower: true,
             strength: true,
+            dexterity: true,
             intelligence: true,
+            luck: true,
           },
         },
         inventory: {
@@ -165,17 +165,34 @@ router.get('/characters/:nickname', async (req, res, next) => {
             maxSlots: true,
             items: {
               select: {
+                id: true,
                 name: true,
+                description: true,
                 itemLevel: true,
                 type: true,
                 rarity: true,
                 price: true,
+                equippable: true,
+              },
+            },
+            equip: {
+              select: {
+                headSlotId: true,
+                bodyTopSlotId: true,
+                bodyBottomSlotId: true,
+                gloveSlotId: true,
+                shoesSlotId: true,
+                weaponSlotId: true,
               },
             },
           },
         },
       },
     });
+
+    if (!character) {
+      return res.status(404).json({ message: '캐릭터를 찾을 수 없습니다.' });
+    }
 
     return res.status(200).json({ data: character });
   } catch (err) {

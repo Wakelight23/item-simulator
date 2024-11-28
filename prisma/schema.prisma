@@ -17,11 +17,11 @@ model Account {
   accountId Int @id @default(autoincrement()) @map("accountId")
   userId String @unique @map("userId")
   password String @map("password")
-
+  isAdmin Boolean @default(false) @map("isAdmin")
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @updatedAt @map("updatedAt")
 
-  characters Character[]
+  characters  Character[] // Character와 1:N 관계
 
   @@map("Account")
 }
@@ -35,26 +35,54 @@ model Character {
   updatedAt     DateTime     @updatedAt @map("updatedAt")
 
   account       Account      @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
-  inventory     Inventory?
-  characterInfo CharacterInfo?
+  inventory     Inventory?   @relation("CharacterToInventory")
+  characterInfo CharacterInfo? @relation("CharacterToCharacterInfo")
 
+  @@index([accountId])
   @@map("Character")
+}
+
+model ItemList {
+    id        Int      @id @default(autoincrement()) @map("itemListId")
+    name      String   @map("itemName")
+    type      String   @map("type")        
+    rarity    String   @map("rarity")      
+    description String? @map("description") 
+    itemLevel Int      @map("itemLevel")   
+    price     Int      @map("itemPrice")   
+    equippable Boolean @default(false)     
+    createdAt DateTime @default(now()) @map("createdAt")
+    updatedAt DateTime @updatedAt @map("updatedAt")
+
+    items     Item[]   // 이름 수정
+
+    @@map("ItemLists")
 }
 
 model Item {
   id          Int       @id @default(autoincrement()) @map("itemId")
   inventoryId Int       @map("inventoryId")
+  itemListId  Int       @map("itemListId")
   name        String    @map("itemName")
   description String?   @map("description")
   itemLevel   Int       @map("itemLevel")
   type        String    @map("type")
   rarity      String    @map("rarity")
   price       Int       @map("itemPrice")
+  equippable  Boolean   @default(false) @map("equippable")
 
   createdAt   DateTime  @default(now()) @map("createdAt")
   updatedAt   DateTime  @updatedAt @map("updatedAt")
 
+  itemList    ItemList  @relation(fields: [itemListId], references: [id], onDelete: Restrict)
   inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  headSlot     Equip?   @relation("HeadItemToEquip")
+  bodyTopSlot  Equip?   @relation("BodyTopItemToEquip")
+  bodyBottomSlot Equip? @relation("BodyBottomItemToEquip")
+  gloveSlot    Equip?   @relation("GloveItemToEquip")
+  shoesSlot    Equip?   @relation("ShoesItemToEquip")
+  weaponSlot   Equip?   @relation("WeaponItemToEquip")
 
   @@map("Items")
 }
@@ -68,28 +96,63 @@ model Inventory {
   createdAt   DateTime  @default(now()) @map("createdAt")
   updatedAt   DateTime  @updatedAt @map("updatedAt")
 
-  character   Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  haracter   Character @relation("CharacterToInventory", fields: [characterId], references: [characterId], onDelete: Cascade)
   items       Item[]
+  equip      Equip?    @relation("InventoryToEquip")
 
+  @@index([characterId])
   @@map("Inventory")
+}
+
+model Equip {
+  id           Int       @id @default(autoincrement()) @map("equipId")
+  inventoryId  Int       @unique @map("inventoryId")
+  itemId       Int?      @unique @map("itemId")      
+  
+  headSlotId      Int?    @unique @map("headSlotId")
+  bodyTopSlotId   Int?    @unique @map("bodyTopSlotId")
+  bodyBottomSlotId Int?   @unique @map("bodyBottomSlotId")
+  gloveSlotId     Int?    @unique @map("gloveSlotId")
+  shoesSlotId     Int?    @unique @map("shoesSlotId")
+  weaponSlotId    Int?    @unique @map("weaponSlotId")
+  
+  createdAt   DateTime  @default(now()) @map("createdAt")
+  updatedAt   DateTime  @updatedAt @map("updatedAt")
+
+  inventory   Inventory @relation("InventoryToEquip", fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  headItem     Item?    @relation("HeadItemToEquip", fields: [headSlotId], references: [id], onDelete: SetNull)
+  bodyTopItem  Item?    @relation("BodyTopItemToEquip", fields: [bodyTopSlotId], references: [id], onDelete: SetNull)
+  bodyBottomItem Item?  @relation("BodyBottomItemToEquip", fields: [bodyBottomSlotId], references: [id], onDelete: SetNull)
+  gloveItem    Item?    @relation("GloveItemToEquip", fields: [gloveSlotId], references: [id], onDelete: SetNull)
+  shoesItem    Item?    @relation("ShoesItemToEquip", fields: [shoesSlotId], references: [id], onDelete: SetNull)
+  weaponItem   Item?    @relation("WeaponItemToEquip", fields: [weaponSlotId], references: [id], onDelete: SetNull)
+
+  @@index([inventoryId])
+  @@map("Equips")
 }
 
 model CharacterInfo {
   id            Int       @id @default(autoincrement()) @map("characterInfoId")
   characterId   Int       @unique @map("characterId")
 
-  equipLevel    Int       @default(0) @map("equipLevel")
+  equipLevel    Int       @default(0)  @map("equipLevel")
+  healthPoint   Int       @default(100) @map("healthPoint")
   manaPoint     Int       @default(10) @map("manaPoint")
   attackDamage  Int       @default(10) @map("attackDamage")
   magicDamage   Int       @default(10) @map("magicDamage")
+  defensivePower Int      @default(10) @map("defensivePower")
   strength      Int       @default(10) @map("strength")
+  dexterity     Int       @default(10) @map("dexterity")
   intelligence  Int       @default(10) @map("intelligence")
+  luck          Int       @default(0) @map("luck")
 
   createdAt     DateTime  @default(now()) @map("createdAt")
   updatedAt     DateTime  @updatedAt @map("updatedAt")
 
-  character     Character @relation(fields: [characterId], references: [characterId], onDelete: Cascade)
+  character     Character @relation("CharacterToCharacterInfo", fields: [characterId], references: [characterId], onDelete: Cascade)
 
+  @@index([characterId])
   @@map("CharacterInfo")
 }
 

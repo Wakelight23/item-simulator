@@ -5,15 +5,19 @@ const API_URL =
     : 'http://wakelight.shop:3010/api';
 
 export async function signup(userId, password, confirmPassword) {
-  const response = await fetch(`${API_URL}/signup`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ userId, password, confirmPassword }),
-    credentials: 'include',
-  });
-  return await response.json();
+  try {
+    const response = await fetch(`${API_URL}/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, password, confirmPassword }),
+      credentials: 'include',
+    });
+    return await response.json();
+  } catch (error) {
+    throw new Error('회원가입 요청에 실패했습니다.');
+  }
 }
 
 export async function login(userId, password) {
@@ -25,6 +29,7 @@ export async function login(userId, password) {
       },
       body: JSON.stringify({ userId, password }),
       credentials: 'include',
+      mode: 'cors',
     });
     return await response.json();
   } catch (error) {

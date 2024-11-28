@@ -10,18 +10,34 @@ router.post('/characters', authMiddleware, async (req, res, next) => {
     const { accountId } = req.user;
     const { nickname } = req.body;
 
+    // 닉네임 input 값이 NULL이면
+    if (!nickname) {
+      return res.status(400).json({ message: '캐릭터명을 입력해주세요.' });
+    }
+
+    // 계정의 캐릭터 수 확인
+    const characterCount = await prisma.character.count({
+      where: { accountId },
+    });
+
+    if (characterCount >= 3) {
+      return res.status(400).json({
+        message: '캐릭터는 최대 3개까지만 생성할 수 있습니다.',
+      });
+    }
+
     // 닉네임 중복 검사
     const isExistNickname = await prisma.character.findFirst({
       where: { nickname },
     });
 
+    // 닉네임이 데이터테이블에 존재하는지 확인
     if (isExistNickname) {
       return res.status(409).json({ message: '이미 존재하는 닉네임입니다.' });
     }
 
     // 트랜잭션으로 캐릭터, 스탯, 인벤토리 동시 생성
     const character = await prisma.$transaction(async (tx) => {
-      // 캐릭터 생성
       const character = await tx.character.create({
         data: {
           accountId,
@@ -30,11 +46,15 @@ router.post('/characters', authMiddleware, async (req, res, next) => {
           characterInfo: {
             create: {
               equipLevel: 0,
+              healthPoint: 100,
               manaPoint: 10,
               attackDamage: 10,
               magicDamage: 10,
+              defensivePower: 10,
               strength: 10,
+              dexterity: 10,
               intelligence: 10,
+              luck: 0,
             },
           },
           // 인벤토리 생성
@@ -42,19 +62,29 @@ router.post('/characters', authMiddleware, async (req, res, next) => {
             create: {
               gold: 10000,
               maxSlots: 20,
+              equip: {
+                create: {}, // 빈 장비 슬롯 생성
+              },
             },
           },
         },
         include: {
+          inventory: {
+            include: {
+              equip: true,
+              items: true,
+            },
+          },
           characterInfo: true,
-          inventory: true,
         },
       });
-
       return character;
     });
 
-    return res.status(201).json({ data: character });
+    return res.status(201).json({
+      message: '캐릭터가 성공적으로 생성되었습니다.',
+      data: character,
+    });
   } catch (err) {
     next(err);
   }
