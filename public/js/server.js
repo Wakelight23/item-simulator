@@ -5,6 +5,9 @@ import {
   searchCharacter,
   getCharacterList,
   getCharacterInfo,
+  drawRandomItem,
+  sellAllItems,
+  sellItem,
 } from './api.js';
 export {
   handleSignup,
@@ -279,13 +282,16 @@ async function handleDrawItem() {
       return;
     }
 
-    const data = await drawRandomItem(characterId);
-    alert(data.message);
-    // UI 업데이트
-    updateGameUI(data);
+    const response = await drawRandomItem(characterId);
+    if (!response || !response.data) {
+      throw new Error('아이템 뽑기 응답이 올바르지 않습니다.');
+    }
+
+    alert(response.message);
+    updateGameUI(response.data);
   } catch (error) {
     console.error('아이템 뽑기 실패:', error);
-    alert('아이템 뽑기에 실패했습니다.');
+    alert(error.message || '아이템 뽑기에 실패했습니다.');
   }
 }
 
@@ -336,24 +342,82 @@ async function handleSellAll() {
 
 // 게임 UI 업데이트
 function updateGameUI(data) {
+  if (!data || !data.inventory) return;
+
+  // 캐릭터 정보 업데이트 (데이터가 있을 때만)
+  if (data.characterInfo) {
+    const characterStats = document.getElementById('characterStats');
+    characterStats.innerHTML = `
+            <h3>${data.nickname || ''}</h3>
+            <p>레벨: ${data.characterInfo.equipLevel || 0}</p>
+            <p>HP: ${data.characterInfo.healthPoint || 0}</p>
+            <p>MP: ${data.characterInfo.manaPoint || 0}</p>
+        `;
+  }
+
   // 골드 업데이트
-  document.getElementById('goldAmount').textContent = data.inventory.gold;
+  const goldElement = document.getElementById('goldAmount');
+  if (goldElement) {
+    goldElement.textContent = data.inventory.gold;
+  }
 
   // 인벤토리 슬롯 업데이트
   const inventorySlots = document.getElementById('inventorySlots');
-  inventorySlots.innerHTML = Array(data.inventory.maxSlots)
-    .fill(0)
-    .map((_, index) => {
-      const item = data.inventory.items[index];
-      return `
-              <div class="inventory-slot ${item ? '' : 'empty'}" 
-                   data-slot="${index}" 
-                   ${item ? `data-item-id="${item.id}"` : ''}>
-                  ${item ? item.name : '빈 슬롯'}
-              </div>
-          `;
-    })
-    .join('');
+  if (inventorySlots) {
+    // 기존 슬롯의 선택 상태를 저장
+    const selectedSlot = inventorySlots.querySelector(
+      '.inventory-slot.selected'
+    );
+    const selectedItemId = selectedSlot ? selectedSlot.dataset.itemId : null;
+
+    inventorySlots.innerHTML = Array(data.inventory.maxSlots)
+      .fill(null)
+      .map((_, index) => {
+        const item = data.inventory.items[index];
+        const isSelected = item && item.id === selectedItemId;
+
+        return `
+                    <div class="inventory-slot ${item ? '' : 'empty'} ${
+          isSelected ? 'selected' : ''
+        }" 
+                         data-slot="${index}" 
+                         ${item ? `data-item-id="${item.id}"` : ''}>
+                        ${
+                          item
+                            ? `
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-info">
+                                <span>타입: ${item.type}</span>
+                                <span>가격: ${item.price}</span>
+                            </div>
+                        `
+                            : '빈 슬롯'
+                        }
+                    </div>
+                `;
+      })
+      .join('');
+
+    // 슬롯 클릭 이벤트 리스너
+    const slots = inventorySlots.querySelectorAll('.inventory-slot');
+    slots.forEach((slot) => {
+      slot.addEventListener('click', () => {
+        // 이전 선택 해제
+        const prevSelected = inventorySlots.querySelector('.selected');
+        if (prevSelected) {
+          prevSelected.classList.remove('selected');
+        }
+
+        // 빈 슬롯이 아닌 경우에만 선택 가능
+        if (!slot.classList.contains('empty')) {
+          slot.classList.add('selected');
+          document.getElementById('sellItemBtn').disabled = false;
+        } else {
+          document.getElementById('sellItemBtn').disabled = true;
+        }
+      });
+    });
+  }
 }
 
 // 다시 캐릭터 선택창으로 돌아감

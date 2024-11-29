@@ -12,9 +12,10 @@ router.get(
     try {
       const { characterId } = req.params;
 
-      // 명시적 형변환 및 유효성 검사
-      const id = parseInt(characterId);
-      if (isNaN(id)) {
+      console.log('Requested characterId:', characterId); // 디버깅용 로그
+
+      // characterId 유효성 검사
+      if (!characterId || isNaN(characterId)) {
         return res.status(400).json({
           message: '유효하지 않은 캐릭터 ID입니다.',
         });
@@ -22,30 +23,12 @@ router.get(
 
       const character = await prisma.character.findFirst({
         where: {
-          characterId: id, // 형변환된 ID 사용
+          characterId: parseInt(characterId),
         },
-        select: {
-          characterId: true,
-          nickname: true,
-          characterInfo: {
-            select: {
-              equipLevel: true,
-              healthPoint: true,
-              manaPoint: true,
-              attackDamage: true,
-              magicDamage: true,
-              defensivePower: true,
-              strength: true,
-              dexterity: true,
-              intelligence: true,
-              luck: true,
-            },
-          },
+        include: {
+          characterInfo: true,
           inventory: {
-            select: {
-              id: true,
-              gold: true,
-              maxSlots: true,
+            include: {
               items: true,
             },
           },
@@ -53,14 +36,24 @@ router.get(
       });
 
       if (!character) {
+        console.log('Character not found');
         return res.status(404).json({
           message: '캐릭터를 찾을 수 없습니다.',
         });
       }
 
-      return res.status(200).json({ data: character });
+      console.log('Character data:', character); // 디버깅용 로그
+
+      return res.status(200).json({
+        data: {
+          characterId: character.characterId,
+          nickname: character.nickname,
+          characterInfo: character.characterInfo,
+          inventory: character.inventory,
+        },
+      });
     } catch (err) {
-      console.error('캐릭터 조회 오류:', err); // 에러 로깅 추가
+      console.error('Error:', err); // 디버깅용 로그
       next(err);
     }
   }

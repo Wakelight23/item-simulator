@@ -76,47 +76,85 @@ export async function getCharacterList(accountId) {
 // 캐릭터 정보
 export async function getCharacterInfo(characterId) {
   try {
-    const response = await fetch(`${API_URL}/simul/characters/${characterId}`, {
+    const response = await fetch(`${API_URL}/characters/${characterId}`, {
+      method: 'GET',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
     });
 
     if (!response.ok) {
-      throw new Error('캐릭터 정보를 불러올 수 없습니다.');
+      const errorData = await response.json();
+      throw new Error(errorData.message || '캐릭터 정보를 불러올 수 없습니다.');
     }
 
-    return await response.json();
+    const data = await response.json();
+    if (!data || !data.data) {
+      throw new Error('잘못된 응답 데이터 형식입니다.');
+    }
+
+    return data;
   } catch (error) {
-    throw new Error('캐릭터 정보 요청에 실패했습니다.');
+    console.error('API Error:', error);
+    throw error;
   }
 }
 
 // 아이템 뽑기
 export async function drawRandomItem(characterId) {
-  const response = await fetch(`${API_URL}/simul/random-item/${characterId}`, {
+  const response = await fetch(`${API_URL}/random-item/${characterId}`, {
     method: 'POST',
+    credentials: 'include', // 인증 토큰 포함
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || '아이템 뽑기에 실패했습니다.');
+  }
+
   return await response.json();
 }
 
 // 아이템 판매
 export async function sellItem(characterId, itemId) {
   const response = await fetch(
-    `${API_URL}/simul/sell-item/${characterId}/${itemId}`,
+    `${API_URL}/sell-item/${characterId}/${itemId}`,
     {
       method: 'POST',
-      credentials: 'include',
+      credentials: 'include', // 인증 토큰 포함
+      headers: {
+        'Content-Type': 'application/json',
+      },
     }
   );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || '아이템 판매에 실패했습니다.');
+  }
+
   return await response.json();
 }
 
 // 모든 아이템 판매
 export async function sellAllItems(characterId) {
-  const response = await fetch(`${API_URL}/simul/sell-all/${characterId}`, {
+  const response = await fetch(`${API_URL}/sell-all/${characterId}`, {
     method: 'POST',
+    credentials: 'include', // 인증 토큰 포함
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || '모든 아이템 판매에 실패했습니다.');
+  }
+
   return await response.json();
 }

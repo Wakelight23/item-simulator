@@ -58,7 +58,14 @@ app.use(logMiddware);
 app.use(express.static('public'));
 
 // 5. 라우터
-app.use('/api', [UsersRouter, CharactersRouter, ItemSimulRouter, AdminRouter]);
+app.use('/api', [ItemSimulRouter, UsersRouter, CharactersRouter, AdminRouter]);
+
+// 404 에러 핸들링 미들웨어 추가
+app.use((req, res, next) => {
+  res.status(404).json({
+    message: '요청하신 리소스를 찾을 수 없습니다.',
+  });
+});
 
 // 6. 에러 핸들링 (항상 마지막에 위치)
 app.use(errorHandlingMiddleware);
