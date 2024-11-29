@@ -4,6 +4,57 @@ import authMiddleware from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
+/** 캐릭터 조회 API **/
+router.get('/characters/:nickname', async (req, res, next) => {
+  try {
+    const { nickname } = req.params;
+
+    const character = await prisma.character.findFirst({
+      where: { nickname },
+      select: {
+        characterId: true,
+        nickname: true,
+        characterInfo: {
+          select: {
+            equipLevel: true,
+            healthPoint: true,
+            manaPoint: true,
+            attackDamage: true,
+            magicDamage: true,
+            defensivePower: true,
+            strength: true,
+            dexterity: true,
+            intelligence: true,
+            luck: true,
+          },
+        },
+        inventory: {
+          select: {
+            gold: true,
+            maxSlots: true,
+            items: {
+              select: {
+                name: true,
+                type: true,
+                rarity: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!character) {
+      return res.status(404).json({ message: '캐릭터를 찾을 수 없습니다.' });
+    }
+
+    return res.status(200).json({ data: character });
+  } catch (err) {
+    next(err);
+  }
+});
+
 /** 캐릭터 생성 API **/
 router.post('/characters', authMiddleware, async (req, res, next) => {
   try {
@@ -85,53 +136,6 @@ router.post('/characters', authMiddleware, async (req, res, next) => {
       message: '캐릭터가 성공적으로 생성되었습니다.',
       data: character,
     });
-  } catch (err) {
-    next(err);
-  }
-});
-
-/** 캐릭터 조회 API **/
-router.get('/characters/:nickname', async (req, res, next) => {
-  try {
-    const { nickname } = req.params;
-
-    const character = await prisma.character.findFirst({
-      where: { nickname },
-      select: {
-        id: true,
-        nickname: true,
-        characterInfo: {
-          select: {
-            equipLevel: true,
-            manaPoint: true,
-            attackDamage: true,
-            magicDamage: true,
-            strength: true,
-            intelligence: true,
-          },
-        },
-        inventory: {
-          select: {
-            gold: true,
-            maxSlots: true,
-            items: {
-              select: {
-                name: true,
-                type: true,
-                rarity: true,
-                price: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!character) {
-      return res.status(404).json({ message: '캐릭터를 찾을 수 없습니다.' });
-    }
-
-    return res.status(200).json({ data: character });
   } catch (err) {
     next(err);
   }

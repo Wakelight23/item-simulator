@@ -12,8 +12,6 @@ router.get(
     try {
       const { characterId } = req.params;
 
-      console.log('Requested characterId:', characterId); // 디버깅용 로그
-
       // characterId 유효성 검사
       if (!characterId || isNaN(characterId)) {
         return res.status(400).json({
@@ -41,19 +39,8 @@ router.get(
           message: '캐릭터를 찾을 수 없습니다.',
         });
       }
-
-      console.log('Character data:', character); // 디버깅용 로그
-
-      return res.status(200).json({
-        data: {
-          characterId: character.characterId,
-          nickname: character.nickname,
-          characterInfo: character.characterInfo,
-          inventory: character.inventory,
-        },
-      });
+      return res.status(200).json({ data: character });
     } catch (err) {
-      console.error('Error:', err); // 디버깅용 로그
       next(err);
     }
   }
@@ -220,5 +207,71 @@ router.post(
     }
   }
 );
+
+/** 캐릭터 정보 조회 API **/
+router.get('/characters/:nickname', async (req, res, next) => {
+  try {
+    const { nickname } = req.params;
+
+    const character = await prisma.character.findFirst({
+      where: { nickname: nickname },
+
+      select: {
+        characterId: true,
+        nickname: true,
+        characterInfo: {
+          select: {
+            equipLevel: true,
+            healthPoint: true,
+            manaPoint: true,
+            attackDamage: true,
+            magicDamage: true,
+            defensivePower: true,
+            strength: true,
+            dexterity: true,
+            intelligence: true,
+            luck: true,
+          },
+        },
+        inventory: {
+          select: {
+            gold: true,
+            maxSlots: true,
+            items: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                itemLevel: true,
+                type: true,
+                rarity: true,
+                price: true,
+                equippable: true,
+              },
+            },
+            equip: {
+              select: {
+                headSlotId: true,
+                bodyTopSlotId: true,
+                bodyBottomSlotId: true,
+                gloveSlotId: true,
+                shoesSlotId: true,
+                weaponSlotId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!character) {
+      return res.status(404).json({ message: '캐릭터를 찾을 수 없습니다.' });
+    }
+
+    return res.status(200).json({ data: character });
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;

@@ -65,7 +65,7 @@ router.post('/login', async (req, res, next) => {
     const token = jwt.sign(
       { accountId: account.accountId, isAdmin: false },
       'custom-secret-key',
-      { expiresIn: '24h' } // 만료 시간 증가
+      { expiresIn: '24h' } // 만료 시간
     );
 
     // 쿠키에 토큰 저장
@@ -85,66 +85,6 @@ router.post('/login', async (req, res, next) => {
       message: '로그인에 성공했습니다.',
       accountId: account.accountId,
     });
-  } catch (err) {
-    next(err);
-  }
-});
-
-/** 계정 정보 조회 API **/
-router.get('/accounts/:accountId', authMiddleware, async (req, res, next) => {
-  try {
-    const { accountId } = req.params;
-
-    // accountId가 유효한지 검사
-    if (!accountId || isNaN(+accountId)) {
-      return res.status(400).json({
-        message: '유효하지 않은 계정 ID입니다.',
-      });
-    }
-
-    const account = await prisma.account.findFirst({
-      where: { accountId: parseInt(accountId) },
-      select: {
-        accountId: true,
-        userId: true,
-        createdAt: true,
-        updatedAt: true,
-        characters: {
-          select: {
-            characterId: true,
-            nickname: true,
-            characterInfo: {
-              select: {
-                equipLevel: true,
-                healthPoint: true,
-                manaPoint: true,
-                attackDamage: true,
-                magicDamage: true,
-                defensivePower: true,
-                strength: true,
-                dexterity: true,
-                intelligence: true,
-                luck: true,
-              },
-            },
-            inventory: {
-              include: {
-                items: true,
-                equip: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!account) {
-      return res.status(404).json({
-        message: '계정을 찾을 수 없습니다.',
-      });
-    }
-
-    return res.status(200).json({ data: account });
   } catch (err) {
     next(err);
   }
@@ -211,6 +151,51 @@ router.get('/characters/:nickname', async (req, res, next) => {
     }
 
     return res.status(200).json({ data: character });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** 계정 정보 조회 API **/
+router.get('/accounts/:accountId', authMiddleware, async (req, res, next) => {
+  try {
+    const { accountId } = req.params;
+    const { accountId: tokenAccountId } = req.user;
+
+    // 요청한 accountId와 토큰의 accountId가 일치하는지 확인
+    if (+accountId !== tokenAccountId) {
+      return res.status(403).json({
+        message: '권한이 없습니다.',
+      });
+    }
+
+    const account = await prisma.account.findFirst({
+      where: { accountId: parseInt(accountId) },
+      select: {
+        accountId: true,
+        userId: true,
+        characters: {
+          select: {
+            characterId: true,
+            nickname: true,
+            characterInfo: true,
+            inventory: {
+              include: {
+                items: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!account) {
+      return res.status(404).json({
+        message: '계정을 찾을 수 없습니다.',
+      });
+    }
+
+    return res.status(200).json({ data: account });
   } catch (err) {
     next(err);
   }

@@ -57,20 +57,32 @@ export async function createCharacter(nickname) {
 // 캐릭터 조회
 export async function searchCharacter(nickname) {
   const response = await fetch(`${API_URL}/characters/${nickname}`, {
-    credentials: 'include',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
   return await response.json();
 }
 
 // 캐릭터 리스트 가져오기
 export async function getCharacterList(accountId) {
-  const response = await fetch(`${API_URL}/accounts/${accountId}`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return await response.json();
+  try {
+    const response = await fetch(`${API_URL}/accounts/${accountId}`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('캐릭터 목록을 불러올 수 없습니다.');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw new Error('캐릭터 목록을 불러오는데 실패했습니다.');
+  }
 }
 
 // 캐릭터 정보
@@ -81,7 +93,6 @@ export async function getCharacterInfo(characterId) {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/json',
       },
     });
 

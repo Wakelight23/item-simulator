@@ -141,12 +141,17 @@ async function handleCreateCharacter() {
 async function handleSearchCharacter() {
   try {
     const nickname = document.getElementById('searchNickname').value;
+    if (!nickname) {
+      alert('검색할 닉네임을 입력해주세요.');
+      return;
+    }
+
     const data = await searchCharacter(nickname);
     if (data.data) {
       displayCharacterInfo(data.data);
       document.getElementById('characterInfo').classList.remove('hidden');
     } else {
-      alert(data.message);
+      alert(data.message || '캐릭터를 찾을 수 없습니다.');
     }
   } catch (error) {
     alert('캐릭터 검색 중 오류가 발생했습니다.');
